@@ -7,6 +7,7 @@ import {
   iconCalendarCheck,
   iconCheck,
 } from '../assets/icons';
+import { authService } from '../services/auth.service';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -14,10 +15,22 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    navigate('/dashboard');
+    setError('');
+    setIsLoading(true);
+
+    try {
+      await authService.login(email, password);
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.message || 'Login gagal. Periksa email dan password Anda.');
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -83,6 +96,13 @@ export default function Login() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-7">
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <p className="text-red-600 text-sm">{error}</p>
+              </div>
+            )}
+
             {/* Email */}
             <div className="flex flex-col gap-2">
               <label className="text-[#2b1d16] text-sm">Email</label>
@@ -137,8 +157,12 @@ export default function Login() {
               </button>
             </div>
 
-            <button type="submit" className="btn-primary justify-center h-11 w-full rounded-xl">
-              Masuk
+            <button 
+              type="submit" 
+              className="btn-primary justify-center h-11 w-full rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Memproses...' : 'Masuk'}
             </button>
           </form>
         </div>
